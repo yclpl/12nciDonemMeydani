@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnteraktif Resim Haritası</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .pdf-container {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .viewer {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .number-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1.5px solid;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .number-point[data-number="1"] { border-color: #007bff; }
+        .number-point[data-number="2"] { border-color: #28a745; }
+        .number-point[data-number="3"] { border-color: #dc3545; }
+        .number-point[data-number="4"] { border-color: #ffc107; }
+        .number-point[data-number="5"] { border-color: #17a2b8; }
+        .number-point[data-number="6"] { border-color: #6610f2; }
+        .number-point[data-number="7"] { border-color: #fd7e14; }
+        .number-point[data-number="8"] { border-color: #20c997; }
+
+        .number-point[data-number="1"]:hover { background-color: #007bff; color: white; }
+        .number-point[data-number="2"]:hover { background-color: #28a745; color: white; }
+        .number-point[data-number="3"]:hover { background-color: #dc3545; color: white; }
+        .number-point[data-number="4"]:hover { background-color: #ffc107; color: black; }
+        .number-point[data-number="5"]:hover { background-color: #17a2b8; color: white; }
+        .number-point[data-number="6"]:hover { background-color: #6610f2; color: white; }
+        .number-point[data-number="7"]:hover { background-color: #fd7e14; color: white; }
+        .number-point[data-number="8"]:hover { background-color: #20c997; color: white; }
+    </style>
+
+<style>
+    /* Modal içi resim düzenlemeleri */
+    .modal-body img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        max-height: 70vh; /* Ekran yüksekliğinin %70'i kadar */
+    }
+
+    /* Modal backdrop ve animasyon */
+    .modal-backdrop.show {
+        opacity: 0.8;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal.fade .modal-dialog {
+        transform: scale(0.9);
+        transition: transform 0.2s ease-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+    
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    /* Resim container'ı için scroll özelliği */
+    .modal-image-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        max-height: 70vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    #modalDescription img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    #modalDescription img {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: 60vh;
+    }
+}
+</style>
+
+
+
+
+
+<style>
+    :root {
+        --military-dark: #4A5240;
+        --military-medium: #515744;
+        --military-light: #5D6356;
+        --military-green: #4B5320;
+        --military-beige: #F4F4F0;
+    }
+
+    .image-container {
+        cursor: pointer;
+    }
+    .title-section {
+        background: linear-gradient(145deg, 
+            var(--military-dark) 0%,
+            var(--military-medium) 25%,
+            var(--military-light) 50%,
+            var(--military-green) 100%
+        );
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .title-section:hover {
+        transform: translateY(-2px);
+    }
+    .title-icon {
+        font-size: 1.5rem;
+    }
+
+    /* Modal Styles */
+    .modal-military {
+        background-color: var(--military-beige);
+    }
+    
+    .modal-military .modal-content {
+        background: linear-gradient(
+            180deg,
+            rgba(244, 244, 240, 0.98) 0%,
+            rgba(237, 237, 230, 0.98) 100%
+        );
+        border: 2px solid var(--military-dark);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-military-header {
+        background: linear-gradient(145deg, 
+            var(--military-dark) 0%,
+            var(--military-green) 100%
+        );
+        padding: 1.5rem;
+        border-bottom: 2px solid var(--military-light) !important;
+    }
+
+    .modal-military-body {
+        background-color: rgba(244, 244, 240, 0.7);
+        padding: 2rem;
+    }
+
+    .modal-military-footer {
+        background-color: rgba(74, 82, 64, 0.1);
+        border-top: 1px solid var(--military-light) !important;
+        padding: 1rem;
+    }
+
+    .btn-military {
+        background-color: var(--military-dark);
+        color: #fff;
+        border: 1px solid var(--military-light);
+        padding: 0.5rem 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-military:hover {
+        background-color: var(--military-light);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .military-image-container {
+        border: 2px solid var(--military-dark);
+        padding: 3px;
+        background: var(--military-beige);
+    }
+
+    /* Modal içi elementler için stiller */
+    .military-divider {
+        border-color: var(--military-light);
+        opacity: 0.2;
+    }
+
+    .military-tag {
+        background-color: var(--military-dark);
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+</style>
+
+</head>
+<body class="bg-light">
+    <!-- Ana İçerik -->
+    <div class="container mt-5">
+        <div class="image-container">
+            <!-- Askeri Stil Başlık -->
+            
+            <!-- Resim -->
+            <div class="military-image-container rounded-2 overflow-hidden shadow-lg">
+                <img src="meydan.png" alt="İnteraktif Resim" class="img-fluid w-100">
+            </div>
+        </div>
+
+        
+
+        <div class="accordion" id="accordionPanelsStayOpenExample">
+            <div class="accordion-item">
+                <a href="https://www.google.com" target="_blank"> 
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false" aria-controls="panelsStayOpen-collapseOne">
+                  22 - 23 - 24 NOLU BİLGİLERE BURAYA TIKLAYARAK DRİVE ÜZERİNDEN ULAŞABİLİRSİNİZ
+                </button>
+              </h2>
+              </a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Modal -->
+    <div class="modal fade modal-military" id="descriptionModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw;">
+            <div class="modal-content shadow-lg">
+                <!-- Modal Header -->
+                <div class="modal-military-header">
+                    <div class="d-flex align-items-center">
+                        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-military-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <!-- Sol Kolon - Detaylar -->
+                            <div class="col-md-8">
+                                <div id="modalDescription" class="fs-5">
+                                    <!-- Modal içeriği buraya gelecek -->
+                                    <p>Proje detayları ve teknik özellikler burada listelenecek...</p>
+                                </div>
+                            </div>
+                            <!-- Sağ Kolon - Ek Bilgiler -->
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-military-footer text-center">
+                    <button type="button" class="btn btn-military" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-2"></i>
+                        Kapat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap ve Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        // Açıklamalar için veri
+        const descriptions = {
+            1: `<h2 class="text-center">1 - YAKLAŞMA IŞIKLARI</h2><img src="QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\29.Yaklaşma kategorileri_annex 6.jpg"><br><br><img src="QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\30.300 m yaklaşma ışıkları standartlar_Annex 14 Şekil 5.14.jpg"><br><br><img src="QR 1\\1.PİST YAKLAŞMA IŞIKLARI\\Yaklasma ve pist isiklandirmasi tam model_doc 9157 part 4 şekil 16.jpg"><br><br>`,
+            2: `<h2 class="text-center">2 - PİSTLER</h2><img src="QR 1\\2.PİST\\1.Havalanı referans kodu_Annex 14 Table 1.1.JPG"><br><br><img src="QR 1\\2.PİST\\2.Pist genişlikleri_Annex Table 3.1.10.JPG"><br><br><img src="QR 1\\2.PİST\\6.Paralel pist tanımlama_Annex 5.2.2.5.JPG"><br><br><img src="QR 1\\2.PİST\\7.Pist tanıtma_Annex Şekil 5.2.JPG"><br><br><img src="QR 1\\2.PİST\\8.Pist tanıtma 2_Annex Şekil 5.3.JPG"><br><br><img src="QR 1\\2.PİST\\9.Şerit sayısı_Annex 5.2.4.5.JPG"><br><br><img src="QR 1\\2.PİST\\10.Kaydırılmış eşik işaretlemesi_Annex Şekil 5.4.JPG"><br><br><img src="QR 1\\2.PİST\\11.Hedef noktası_Annex Table 5.1.JPG"><br><br><img src="QR 1\\2.PİST\\12.İşartleme çiftleri_Annex 5.2.6.3.JPG"><br><br><img src="QR 1\\2.PİST\\13.Hedef noktası ve konma bölgesi işaretlemesi_Annex Şekil 5.5.JPG"><br><br>`,
+            3: `<h2 class="text-center">3 - TAKSİ YOLLARI</h2><img src="QR 1\\3.TAKSİ YOLLARI\\3.Taksi yolu kurbu_Annex Şekil 3.2.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\4.Taksi yolu genişliği_Annex 3.9.5.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\14.Taksi yolu işaretlemeleri_Annex Şekil 5.6.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\15.Pist-bekleme pozisyonu işaretlemeleri_Annex Şekil 5.8.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\18.Taksi yolu ışıklandırması_Annex Şekil 5.25.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\19.Dengelenmiş pist ve taksi yolu merkez hattı ışıkları_Annex Şekil 5.26.JPG"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\22.Taksi yolu-pist kavşaklarında levha yerlerine ilişkin örnekler_Annex Şekil 5.31.jpg"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\24.Kurp yarıçapına göre uçak hızı_Doc 9157_part2_tablo1.3.jpg"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\27.Durma barı pozisyon sesnsörleri ile kontrolü_Doc 9157 part 4 şekil 10.2_10.3.jpg"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\28.Durma barı pozisyon sesnsörleri ile kontrolü poz 2 ye gelen uçak_Doc 9157 part 4 şekil 10.2_10.3.jpg"><br><br><img src="QR 1\\3.TAKSİ YOLLARI\\taksi yolu tasarım.jpg"><br><br>`,
+            4: `<h2 class="text-center">4 - İNİŞ YÖNÜ GÖSTERGESİ</h2><img src="QR 1\\4. İNİŞ YERİ GÖSTERGESİ\\5.İniş yeri göstergesi_Annex Şekil 5.1.JPG"><br><br>`,
+            5: `<h2 class="text-center">5 - VOR KONTROL NOKTASI</h2><img src="QR 1\\5.VOR CHECK POINT\\16.VOR check point_Annex Şekil 5.9.JPG"><br><br><img src="QR 1\\5.VOR CHECK POINT\\23.VOR havaalani kontrol noktasi levhasi_Annex Şekil 5.32.JPG"><br><br>`,
+            6: `<h2 class="text-center">6 - PAPI-APAPI</h2><img src="QR 1\\6.PAPİ-APAPİ\\25.Papi detay_Doc 9157 part 4 şekil 8.6.jpg"><br><br><img src="QR 1\\6.PAPİ-APAPİ\\26.Apapi detay_Doc 9157 part 4 şekil 8.7.jpg"><br><br>`,
+            7: `<h2 class="text-center">7 - LEVHALAR</h2><img src="QR 1\\7.LEVHALAR\\17.Zorunlu talimat işaretlemesi_Annex Şekil 5.10.JPG"><br><br><img src="QR 1\\7.LEVHALAR\\20.Zorunlu talimat levhaları_Annex Şekil 5.29.JPG"><br><br><img src="QR 1\\7.LEVHALAR\\21.Bilgilendirme levhaları_Annex Şekil 5.30.JPG"><br><br>`,
+            8: `<h2 class="text-center">8 - RÜZGAR YÖNÜ GÖSTERGESİ</h2><img src="QR 1\\8.RÜZGAR ÇORABI\\1.RÜZGAR_ÇORABI_ANNEX 14_5.1.1.jpg"><br><br><img src="QR 1\\8.RÜZGAR ÇORABI\\2.RÜZGAR_ÇORABI_ANNEX 14_5.1.1.jpg"><br><br>`,
+            9: `<h2 class="text-center">9 - APRONLAR</h2><img src="QR 1\\9.APRONLAR\\1.APRON ÇEŞİTLERİ_9157_2.kısım_ŞEKİL 3.2.jpg"><br><br><img src="QR 1\\9.APRONLAR\\2.Uçak park alanı boyutlandırmasına yönelik ebatlar_9157_2.kısım_ŞEKİL 3.3.jpg"><br><br><img src="QR 1\\9.APRONLAR\\3.Mesafe gereklilikleri_9157_2 .kısım_3.4.4.jpg"><br><br><img src="QR 1\\9.APRONLAR\\4.Terminal park yerine giriş ve park yerinden çıkış için açıklık alanı_9157_2 .kısım_3.4.4.jpg"><br><br><img src="QR 1\\9.APRONLAR\\5.Minimum ayırma mesafesi_9157_2 .kısım_3.4.4.jpg"><br><br>`,
+            10: `<h2 class="text-center">10 - DE-ICING AREA</h2><img src="QR 1\\10.BUZ ÖNLEYİCİ ALAN\\1.Buzlanmayı giderici_önleyici tesislerdeki minimum ayırma mesafesi_9157_2.kısım_şekil 3.6.jpg"><br><br>`,
+            11: `<h2 class="text-center">11 - MANYETİK SAPMA AÇISI</h2><img src="QR 1\\11.MANYETİK SAPMA AÇISI\\sapma açısı_seyrüsefer ve haritacılık.jpg"><br><br>`,
+            12: `<h2 class="text-center">12 - MANİALARIN IŞIKLANDIRILMASI</h2><img src="QR 1\\12.MANİALARIN IŞIKLANDIRILMASI\\Binaların ışıklandırılması_Annex şekil 6_3.jpg"><br><br><img src="QR 1\\12.MANİALARIN IŞIKLANDIRILMASI\\IŞIKLANDIRMA_HAVA HUKUKU.jpg"><br><br><img src="QR 1\\12.MANİALARIN IŞIKLANDIRILMASI\\temel  işaretleme biçimleri_Annex 14 şekil 6_1.jpg"><br><br><img src="QR 1\\12.MANİALARIN IŞIKLANDIRILMASI\\Yüksek yapıların işaretleme ve ışıklandırmasına örnekler_Annex 14 şekil 6_2.jpg"><br><br>`,
+            13: `<h2 class="text-center">13 - HAVA TRAFİK KONTROLÜ</h2><img src="QR 1\\13.KULE\\KULE_HAVA HUKUKU_1.jpg"><br><br><img src="QR 1\\13.KULE\\KULE_HAVA HUKUKU_2.jpg"><br><br><img src="QR 1\\13.KULE\\KULE_HAVA HUKUKU_3.jpg"><br><br><img src="QR 1\\13.KULE\\KULE_HAVA HUKUKU_4.jpg"><br><br>`,
+            14: `<h2 class="text-center">14 - VOR</h2><img src="QR 1\\14.VOR\\vor.jpg"><br><br><img src="QR 1\\14.VOR\\vor_360.jpg"><br><br><img src="QR 1\\14.VOR\\vor_çeşitleri_faa_air navigation.jpg"><br><br><img src="QR 1\\14.VOR\\vor_çeşitleri_faa_özellikler_table 1.1 air navigation.jpg"><br><br>`,
+            15: `<h2 class="text-center">15 - ILS</h2><img src="QR 1\\15.ILS\\ıls_faa.jpg"><br><br><img src="QR 1\\15.ILS\\ıls_faa_frekans.jpg"><br><br><img src="QR 1\\15.ILS\\table_1_1_3_faa.jpg"><br><br>`,
+            16: `<h2 class="text-center">16 - LOCALIZER</h2><img src="QR 1\\16.LOCALIZER\\localizer_faa_navigation aids_fıg 1.1.6.jpg"><br><br><img src="QR 1\\16.LOCALIZER\\localizer_hattı_alet uçuş nazariyatı _şekil 8.2.jpg"><br><br><img src="QR 1\\16.LOCALIZER\\localizer_hattı_cdı ve sektörler_alet uçuş nazariyatı _şekil 8.4.jpg"><br><br><img src="QR 1\\16.LOCALIZER\\localizer_hattı_mesafeleri_alet uçuş nazariyatı _şekil 8.3.jpg"><br><br>`,
+            17: `<h2 class="text-center">17 - ANEMOMETRE</h2><img src="QR 1\\17.ANEMOMETRE\\doc 9157 part 6_2.1.12.jpg"><br><br>`,
+            18: `<h2 class="text-center">18 - AD ELEVATION</h2><img src="QR 1\\18.AD ELEVATION\\annex 14 _definition.jpg"><br><br>`,
+            19: `<h2 class="text-center">19 - HOT SPOTS</h2><img src="QR 1\\19.HOT SPOTS\\"><br><br><img src="QR 1\\19.HOT SPOTS\\hot spots_doc 9870 şekil 3.1.jpg"><br><br><img src="QR 1\\19.HOT SPOTS\\hot spots_doc 9870 şekil 3.2.jpg"><br><br><img src="QR 1\\19.HOT SPOTS\\hot spots_doc 9870 şekil 3.3.jpg"><br><br><img src="QR 1\\19.HOT SPOTS\\hot spots_doc 9870.jpg"><br><br>`,
+            20: `<h2 class="text-center">20 - ARAMA-KURTARMA BİRİMLERİ</h2><img src="QR 1\\20.ARAMA KURTARMA BİRİMLERİ\\Kurtarma ve yangınla mücadele araçlarının sayısı_annex 14 tablo 9.3.jpg"><br><br><img src="QR 1\\20.ARAMA KURTARMA BİRİMLERİ\\Kurtarma ve yangınla mücadele için havaalanı kategorisi_annex 14 tablo 9.1.jpg"><br><br><img src="QR 1\\20.ARAMA KURTARMA BİRİMLERİ\\Minimum kullanılabilir söndürücü malzeme miktarları_annex14 tablo 9.2.jpg"><br><br>`,
+            21: `<h2 class="text-center">21 - HELİKOPTER PANELLERİ</h2><img src="QR 1\\21.HELİKOPTER PANEL\\FATO_ANNEX 14 HELİPORT.jpg"><br><br><img src="QR 1\\21.HELİKOPTER PANEL\\HELİKOPTER PARK YERİ VE ALANI_ANNEX 14 HELİPORT.jpg"><br><br><img src="QR 1\\21.HELİKOPTER PANEL\\helikopter taksi yolu_annex14 heliport.png"><br><br>`,
+            22: `<h2 class="text-center"></h2><img src="QR 1\\22.AVIATION CHARTS\\"><br><br>`,
+            23: `<h2 class="text-center"></h2><img src="QR 1\\23.SEMBOLLER\\1.hava hukuku.jpg"><br><br><img src="QR 1\\23.SEMBOLLER\\2.hava hukuku.jpg"><br><br><img src="QR 1\\23.SEMBOLLER\\3.hava hukuku.jpg"><br><br><img src="QR 1\\23.SEMBOLLER\\4.hava hukuku.jpg"><br><br><img src="QR 1\\23.SEMBOLLER\\5.hava hukuku.jpg"><br><br>`,
+            24: `<h2 class="text-center"></h2><img src="QR 1\\24.KAYNAKÇA\\"><br><br>`,
+
+            // ... 24'e kadar devam eden açıklamalar
+           25: `<img src="QR 1\\4. İNİŞ YERİ GÖSTERGESİ\\"><br><br>`
+            
+        };
+
+        const colors = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14', '#20c997'];
+
+        // Renklere ait CSS kuralları oluştur
+        const styleSheet = document.createElement("style");
+        colors.forEach((color, index) => {
+            styleSheet.textContent += `
+                .number-point[data-color="${index}"] {
+                    border-color: ${color};
+                }
+                .number-point[data-color="${index}"]:hover {
+                    background-color: ${color};
+                    color: ${color === '#ffc107' ? 'black' : 'white'};
+                }
+            `;
+        });
+        document.head.appendChild(styleSheet);
+
+
+
+        const points = [
+    { number: 1, top: "40.86%", left: "16.93%" },
+    { number: 1, top: "53.67%", left: "8.58%" },
+    { number: 1, top: "42.80%", left: "93.15%" },
+    { number: 1, top: "49.96%", left: "93.87%" },
+    { number: 2, top: "43.39%", left: "55.31%" },
+    { number: 2, top: "50.80%", left: "55.61%" },
+    { number: 3, top: "57.21%", left: "14.01%" },
+    { number: 3, top: "54.34%", left: "35.52%" },
+    { number: 3, top: "47.35%", left: "40.65%" },
+    { number: 3, top: "35.89%", left: "59.78%" },
+    { number: 3, top: "58.05%", left: "61.62%" },
+    { number: 3, top: "54.09%", left: "74.86%" },
+    { number: 4, top: "47.77%", left: "36.24%" },
+    { number: 5, top: "56.53%", left: "20.74%" },
+    { number: 5, top: "56.87%", left: "71.64%" },
+    { number: 6, top: "45.41%", left: "71.58%" },
+    { number: 6, top: "52.32%", left: "71.28%" },
+    { number: 6, top: "40.19%", left: "34.51%" },
+    { number: 6, top: "47.10%", left: "25.63%" },
+    { number: 7, top: "47.94%", left: "67.94%" },
+    { number: 8, top: "47.60%", left: "30.45%" },
+    { number: 8, top: "47.35%", left: "78.73%" },
+    { number: 9, top: "66.31%", left: "26.28%" },
+    { number: 9, top: "30.25%", left: "48.51%" },
+    { number: 10, top: "69.76%", left: "30.81%" },
+    { number: 11, top: "70.10%", left: "6.08%" },
+    { number: 12, top: "24.35%", left: "40.11%" },
+    { number: 12, top: "71.62%", left: "16.63%" },
+    { number: 12, top: "71.53%", left: "44.82%" },
+    { number: 13, top: "24.35%", left: "64.49%" },
+    { number: 14, top: "46.00%", left: "97.86%" },
+    { number: 15, top: "35.89%", left: "31.94%" },
+    { number: 15, top: "47.52%", left: "20.86%" },
+    { number: 15, top: "38.67%", left: "73.19%" },
+    { number: 15, top: "45.92%", left: "73.54%" },
+    { number: 16, top: "42.72%", left: "11.86%" },
+    { number: 16, top: "49.54%", left: "5.54%" },
+    { number: 16, top: "41.87%", left: "88.09%" },
+    { number: 16, top: "49.12%", left: "88.03%" },
+    { number: 17, top: "39.18%", left: "28.49%" },
+    { number: 17, top: "39.35%", left: "77.12%" },
+    { number: 18, top: "48.36%", left: "46.84%" },
+    { number: 19, top: "62.26%", left: "26.16%" },
+    { number: 19, top: "58.05%", left: "55.96%" },
+    { number: 20, top: "67.99%", left: "42.61%" },
+    { number: 21, top: "39.26%", left: "56.68%" }
+];
+
+
+
+        // Noktaları oluştur
+        const imageContainer = document.querySelector('.image-container');
+        points.forEach(point => {
+            const div = document.createElement('div');
+            div.className = 'number-point';
+            div.textContent = point.number;
+            div.style.top = point.top;
+            div.style.left = point.left;
+            div.setAttribute('data-number', point.number);
+            // Renk indeksini hesapla (8'den sonra başa sar)
+            const colorIndex = (point.number - 1) % colors.length;
+            div.setAttribute('data-color', colorIndex);
+            
+            div.addEventListener('click', () => showDescription(point.number));
+            imageContainer.appendChild(div);
+        });
+
+        // Modal işlemleri
+        const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+        const modalDescription = document.getElementById('modalDescription');
+
+        function showDescription(number) {
+            modalDescription.innerHTML = descriptions[number];
+            const modal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>
